@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLink — URL Qısaldıcı</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            width: 550px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #888;
+            margin-bottom: 35px;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+            margin-bottom: 15px;
+        }
+
+        input:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result p {
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .short-link {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            padding: 10px 25px;
+            width: auto;
+            font-size: 14px;
+            border-radius: 8px;
+            background: #667eea;
+        }
+
+        .error {
+            margin-top: 15px;
+            color: red;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">🔗</div>
+        <h1>MiniLink</h1>
+        <p class="subtitle">Uzun linkləri saniyədə qısaldın!</p>
+
+        <input type="text" id="urlInput" placeholder="https://uzun-link-buraya.com/...">
+        <button onclick="qisalt()">⚡ Qısalt</button>
+
+        <div class="result" id="result">
+            <p>✅ Linkiniз qısaldıldı!</p>
+            <a class="short-link" id="shortLink" href="#" target="_blank"></a>
+            <br>
+            <button class="copy-btn" onclick="kopyala()">📋 Kopyala</button>
+        </div>
+
+        <p class="error" id="error">❌ Xəta! URL düzgün deyil.</p>
+    </div>
+
+    <script>
+        async function qisalt() {
+            const url = document.getElementById('urlInput').value;
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            const shortLink = document.getElementById('shortLink');
+
+            result.style.display = 'none';
+            error.style.display = 'none';
+
+            if (!url.startsWith('http')) {
+                error.style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('url', url);
+
+            const response = await fetch('/qisalt', {
+                method: 'POST',
+                body: formData
+            });
+
+            const html = await response.text();
+            const match = html.match(/href="(\/\w+)"/);
+
+            if (match) {
+                const link = window.location.origin + match[1];
+                shortLink.href = link;
+                shortLink.textContent = link;
+                result.style.display = 'block';
+            } else {
+                error.style.display = 'block';
+            }
+        }
+
+        function kopyala() {
+            const link = document.getElementById('shortLink').textContent;
+            navigator.clipboard.writeText(link);
+            alert('✅ Kopyalandı!');
+        }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') qisalt();
+        });
+    </script>
+</body>
+</html>

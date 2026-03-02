@@ -1,0 +1,11 @@
+backend:
+  image: minilink-backend:latest
+  replicas: 3
+  port: 5000
+
+redis:
+  image: redis:alpine
+  port: 6379
+
+service:
+  type: NodePort

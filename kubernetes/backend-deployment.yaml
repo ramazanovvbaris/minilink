@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: minilink-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health     # bu endpoint-i yoxla
+            port: 5000
+          initialDelaySeconds: 10   # 10 saniyə gözlə, sonra yoxla
+          periodSeconds: 10         # hər 10 saniyədə bir yoxla
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5    # 5 saniyə gözlə
+          periodSeconds: 5          # hər 5 saniyədə bir yoxla
+        envFrom:
+        - configMapRef:
+            name: minilink-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: NodePort
